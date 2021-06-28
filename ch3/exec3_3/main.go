@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"math"
+
+	"github.com/gerow/go-color"
 )
 
 const (
@@ -27,7 +29,7 @@ func main() {
 			cx, cy, cz := corner(i, j+1)
 			dx, dy, dz := corner(i+1, j+1)
 			color := mapColor((az + bz + cz + dz) / 4.0)
-			fmt.Printf("<polygon fill=\"#%6x\" points='%g,%g %g,%g %g,%g %g,%g'/>\n",
+			fmt.Printf("<polygon fill=\"#%s\" points='%g,%g %g,%g %g,%g %g,%g'/>\n",
 				color, ax, ay, bx, by, cx, cy, dx, dy)
 		}
 	}
@@ -48,12 +50,23 @@ func f(x, y float64) float64 {
 	return math.Sin(r) / r
 }
 
-const maxColor = float64(0xff0000)
-const minColor = float64(0x0000ff)
 const minZ = -0.3
 const maxZ = 1.0
 
-func mapColor(z float64) uint32 {
-	z -= minZ
-	return uint32((maxColor - minColor) * z / (maxZ - minZ))
+var minZColor = color.RGB{0, 0, 1.0}.ToHSL() // blue
+var maxZColor = color.RGB{1.0, 0, 0}.ToHSL() // red
+// H in HSL color space
+var minH = math.Min(minZColor.H, maxZColor.H)
+var maxH = math.Max(minZColor.H, maxZColor.H)
+
+// z:		[minZ,		maxZ]
+// maxZ-z:	[maxZ-minZ,	0]
+// h:		[maxH,		minH]
+func mapColor(z float64) string {
+	h := (maxZ - z) / (maxZ - minZ) * (maxH - minH)
+	hsl := color.HSL{h, 1.0, 0.5}
+	rgb := hsl.ToRGB()
+	html := rgb.ToHTML()
+	//fmt.Printf("\n<!-- z: %6.3f, h: %6.3f, hsl: %v, rgb: %v, html: %s -->\n", z, h, hsl, rgb, html)
+	return html
 }
