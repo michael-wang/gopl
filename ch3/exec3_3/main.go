@@ -56,17 +56,19 @@ const maxZ = 1.0
 var minZColor = color.RGB{0, 0, 1.0}.ToHSL() // blue
 var maxZColor = color.RGB{1.0, 0, 0}.ToHSL() // red
 // H in HSL color space
-var minH = math.Min(minZColor.H, maxZColor.H)
-var maxH = math.Max(minZColor.H, maxZColor.H)
+var minH = minZColor.H
+var maxH = maxZColor.H
 
 // z:		[minZ,		maxZ]
 // maxZ-z:	[maxZ-minZ,	0]
 // h:		[maxH,		minH]
 func mapColor(z float64) string {
-	h := (maxZ - z) / (maxZ - minZ) * (maxH - minH)
+	var h float64
+	if maxH > minH {
+		h = (z-minZ)/(maxZ-minZ)*(maxH-minH) + minH
+	} else {
+		h = (maxZ-z)/(maxZ-minZ)*(minH-maxH) + maxH
+	}
 	hsl := color.HSL{h, 1.0, 0.5}
-	rgb := hsl.ToRGB()
-	html := rgb.ToHTML()
-	//fmt.Printf("\n<!-- z: %6.3f, h: %6.3f, hsl: %v, rgb: %v, html: %s -->\n", z, h, hsl, rgb, html)
-	return html
+	return hsl.ToHTML()
 }
