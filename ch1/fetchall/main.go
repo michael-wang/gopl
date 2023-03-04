@@ -1,37 +1,75 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	neturl "net/url"
 	"os"
+	"strings"
 	"time"
 )
 
 func main() {
+	flagSave := flag.Bool("save", false, "Exercise 1.10: save response body to file ($hostname.html)")
+
 	start := time.Now()
 	ch := make(chan string)
-	for _, url := range os.Args[1:] {
-		go fetch(url, ch)
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--") {
+			// Ignore flags
+			continue
+		}
+		go fetch(arg, ch, *flagSave)
 	}
-	for range os.Args[1:] {
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--") {
+			// Ignore flags
+			continue
+		}
 		fmt.Println(<-ch)
 	}
 	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
 }
 
-func fetch(url string, ch chan<- string) {
+func fetch(url string, ch chan<- string, save bool) {
 	start := time.Now()
+	if !strings.HasPrefix(url, "http") {
+		url = "https://" + url
+	}
+	fmt.Println("url: ", url)
+
 	resp, err := http.Get(url)
 	if err != nil {
 		ch <- fmt.Sprint(err)
 		return
 	}
-	nbytes, err := io.Copy(ioutil.Discard, resp.Body)
-	resp.Body.Close()
+	defer resp.Body.Close()
+
+	out := ioutil.Discard
+	if save {
+		u, err := neturl.Parse(url)
+		if err != nil {
+			ch <- fmt.Sprintf("Failed to parse url: %s\nerr: %v\n", url, err)
+			return
+		}
+
+		filename := fmt.Sprintf("./out/%s.out", u.Host)
+		file, err := os.Create(filename)
+		if err != nil {
+			ch <- fmt.Sprintf("Failed to create file: %s\nerr: %v\n", filename, err)
+			return
+		}
+
+		out = file
+		defer file.Close()
+	}
+
+	nbytes, err := io.Copy(out, resp.Body)
 	if err != nil {
-		ch <- fmt.Sprintf("while reading: %s: %v\n", url, err)
+		ch <- fmt.Sprintf("while reading %s: %v", url, err)
 		return
 	}
 	secs := time.Since(start).Seconds()
