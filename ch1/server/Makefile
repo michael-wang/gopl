@@ -24,3 +24,6 @@ req2: $(fetch)
 	../fetch/bin/fetch http://localhost:8000
 	../fetch/bin/fetch http://localhost:8000/count
 	../fetch/bin/fetch http://localhost:8000/count
+
+lissajous: build
+	open http://localhost:8000/lissajous
