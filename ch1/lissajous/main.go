@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"image"
 	"image/color"
 	"image/gif"
@@ -13,11 +14,29 @@ import (
 var palette = []color.Color{color.White, color.Black}
 
 const (
-	whiteIndex = 0
-	blackIndex = 1
+	backgroundIndex = 0
+	foregroundIndex = 1
 )
 
+// For exercise 1.5
+var palette2 = []color.Color{color.Black, green}
+var usePalette2 bool
+
+// For exercise 1.6
+var red = color.RGBA{0xff, 0, 0, 0xff}
+var green = color.RGBA{0, 0xff, 0, 0xff}
+var blue = color.RGBA{0, 0, 0xff, 0xff}
+var palette3 = color.Palette{color.Black, red, green, blue}
+
+const maxIndex = 4
+
+var randomColor bool
+
 func main() {
+	flag.BoolVar(&usePalette2, "green", false, "Exercise 1.5: change palette to green over black")
+	flag.BoolVar(&randomColor, "rand", false, "Exercise 1.6: add more colors and SetColorIndex in some ionteresting way")
+	flag.Parse()
+
 	lissajous(os.Stdout)
 }
 
@@ -34,11 +53,22 @@ func lissajous(out io.Writer) {
 	phase := 0.0
 	for i := 0; i < nframes; i++ {
 		rect := image.Rect(0, 0, 2*size+1, 2*size+1)
-		img := image.NewPaletted(rect, palette)
+		plt := palette
+		if usePalette2 {
+			plt = palette2
+		}
+		if randomColor {
+			plt = palette3
+		}
+		img := image.NewPaletted(rect, plt)
 		for t := 0.0; t < cycles*2*math.Pi; t += res {
 			x := math.Sin(t)
 			y := math.Sin(t*freq + phase)
-			img.SetColorIndex(size+int(x*size+0.5), size+int(y*size+0.5), blackIndex)
+			color := foregroundIndex
+			if randomColor {
+				color = rand.Intn(maxIndex)
+			}
+			img.SetColorIndex(size+int(x*size+0.5), size+int(y*size+0.5), uint8(color))
 		}
 		phase += 0.1
 		anim.Delay = append(anim.Delay, delay)

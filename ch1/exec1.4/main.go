@@ -32,7 +32,7 @@ func main() {
 			sep := ""
 			for filename := range files {
 				fmt.Print(sep + filename)
-				sep = " "
+				sep = ", "
 			}
 			fmt.Print("\n")
 		}

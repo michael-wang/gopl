@@ -2,5 +2,5 @@ DIRS := $(wildcard */.)
 
 clean:
 	for dir in $(DIRS); do \
-		cd $$dir; go clean; cd ../; \
+		cd $$dir; make clean; cd ../; \
 	done
