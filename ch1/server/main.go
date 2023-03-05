@@ -11,6 +11,8 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
+	"strconv"
 	"sync"
 )
 
@@ -61,7 +63,16 @@ func counter(w http.ResponseWriter, r *http.Request) {
 }
 
 func drawLissajous(w http.ResponseWriter, r *http.Request) {
-	lissajous(w)
+	if err := r.ParseForm(); err != nil {
+		fmt.Fprintf(w, "err: %v\n", err)
+		return
+	}
+	lissajous(w,
+		formIntVal(r.Form, "cycles"),
+		formIntVal(r.Form, "size"),
+		formIntVal(r.Form, "nframes"),
+		formIntVal(r.Form, "delay"),
+	)
 }
 
 // Copy from ../lissajous/main.go
@@ -72,28 +83,52 @@ const (
 	blackIndex = 1
 )
 
-func lissajous(out io.Writer) {
-	const (
-		cycles  = 5
-		res     = 0.001
-		size    = 100
+func lissajous(out io.Writer, cycles, size, nframes, delay int) {
+	if cycles == 0 {
+		cycles = 5
+	}
+	const res = 0.001
+	if size == 0 {
+		size = 100
+	}
+	if nframes == 0 {
 		nframes = 64
-		delay   = 8
-	)
+	}
+	if delay == 0 {
+		delay = 8
+	}
+
 	freq := rand.Float64() * 3.0
 	anim := gif.GIF{LoopCount: nframes}
 	phase := 0.0
 	for i := 0; i < nframes; i++ {
 		rect := image.Rect(0, 0, 2*size+1, 2*size+1)
 		img := image.NewPaletted(rect, palette)
-		for t := 0.0; t < cycles*2*math.Pi; t += res {
+		for t := 0.0; t < float64(cycles)*2*math.Pi; t += res {
 			x := math.Sin(t)
 			y := math.Sin(t*freq + phase)
-			img.SetColorIndex(size+int(x*size+0.5), size+int(y*size+0.5), blackIndex)
+			img.SetColorIndex(
+				size+int(x*float64(size)+0.5),
+				size+int(y*float64(size)+0.5),
+				blackIndex,
+			)
 		}
 		phase += 0.1
 		anim.Delay = append(anim.Delay, delay)
 		anim.Image = append(anim.Image, img)
 	}
 	gif.EncodeAll(out, &anim)
+}
+
+func formIntVal(form url.Values, key string) int {
+	v, ok := form[key]
+	if !ok {
+		return 0
+	}
+	i, err := strconv.Atoi(v[0])
+	if err != nil {
+		fmt.Printf("parse %s err: %v\n", v, err)
+		return 0
+	}
+	return i
 }

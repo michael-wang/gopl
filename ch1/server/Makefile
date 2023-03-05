@@ -27,3 +27,6 @@ req2: $(fetch)
 
 lissajous: build
 	open http://localhost:8000/lissajous
+
+req-exec1.12: build
+	open http://localhost:8000/lissajous?cycles=7&size=200&nframes=128&delay=16
