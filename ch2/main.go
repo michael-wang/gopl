@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	pop "gopl.io/ch2/popcount"
+	pop "github.com/michael-wang/gopl/ch2/popcount"
 )
 
 func main() {
