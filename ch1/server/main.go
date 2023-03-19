@@ -18,10 +18,9 @@ import (
 
 var mu sync.Mutex
 var count int
-var print bool
+var print = flag.Bool("print", false, "server 3: print headers and form data")
 
 func main() {
-	flag.BoolVar(&print, "print", false, "server 3: print headers and form data")
 	flag.Parse()
 
 	http.HandleFunc("/", handler)
@@ -40,7 +39,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
 
 	// server 3
-	if print {
+	if *print {
 		fmt.Fprintf(w, "%s %s %s\n", r.Method, r.URL, r.Proto)
 		for k, v := range r.Header {
 			fmt.Fprintf(w, "Header[%q] = %q\n", k, v)

@@ -12,29 +12,25 @@ import (
 	"time"
 )
 
+var save = flag.Bool("save", false, "Exercise 1.10: save response body to file ($hostname.html)")
+
 func main() {
-	flagSave := flag.Bool("save", false, "Exercise 1.10: save response body to file ($hostname.html)")
+	flag.Parse()
 
 	start := time.Now()
 	ch := make(chan string)
-	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "--") {
-			// Ignore flags
-			continue
-		}
-		go fetch(arg, ch, *flagSave)
+	for _, arg := range flag.Args() {
+		fmt.Println("fetching: ", arg)
+		go fetch(arg, ch)
 	}
-	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "--") {
-			// Ignore flags
-			continue
-		}
+	for range flag.Args() {
 		fmt.Println(<-ch)
 	}
 	fmt.Printf("%.2fs elapsed\n", time.Since(start).Seconds())
 }
 
-func fetch(url string, ch chan<- string, save bool) {
+func fetch(url string, ch chan<- string) {
+	fmt.Printf("fetching: %s, save: %t\n", url, save)
 	start := time.Now()
 	if !strings.HasPrefix(url, "http") {
 		url = "https://" + url
@@ -49,7 +45,7 @@ func fetch(url string, ch chan<- string, save bool) {
 	defer resp.Body.Close()
 
 	out := ioutil.Discard
-	if save {
+	if *save {
 		u, err := neturl.Parse(url)
 		if err != nil {
 			ch <- fmt.Sprintf("Failed to parse url: %s\nerr: %v\n", url, err)

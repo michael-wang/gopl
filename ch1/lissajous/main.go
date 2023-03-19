@@ -20,21 +20,18 @@ const (
 
 // For exercise 1.5
 var palette2 = []color.Color{color.Black, green}
-var usePalette2 bool
+var usePalette2 = flag.Bool("green", false, "Exercise 1.5: change palette to green over black")
 
 // For exercise 1.6
 var red = color.RGBA{0xff, 0, 0, 0xff}
 var green = color.RGBA{0, 0xff, 0, 0xff}
 var blue = color.RGBA{0, 0, 0xff, 0xff}
 var palette3 = color.Palette{color.Black, red, green, blue}
+var randomColor = flag.Bool("rand", false, "Exercise 1.6: add more colors and SetColorIndex in some ionteresting way")
 
-const maxIndex = 4
-
-var randomColor bool
+const sizeOfPalette3 = 4
 
 func main() {
-	flag.BoolVar(&usePalette2, "green", false, "Exercise 1.5: change palette to green over black")
-	flag.BoolVar(&randomColor, "rand", false, "Exercise 1.6: add more colors and SetColorIndex in some ionteresting way")
 	flag.Parse()
 
 	lissajous(os.Stdout)
@@ -54,10 +51,10 @@ func lissajous(out io.Writer) {
 	for i := 0; i < nframes; i++ {
 		rect := image.Rect(0, 0, 2*size+1, 2*size+1)
 		plt := palette
-		if usePalette2 {
+		if *usePalette2 {
 			plt = palette2
 		}
-		if randomColor {
+		if *randomColor {
 			plt = palette3
 		}
 		img := image.NewPaletted(rect, plt)
@@ -65,8 +62,8 @@ func lissajous(out io.Writer) {
 			x := math.Sin(t)
 			y := math.Sin(t*freq + phase)
 			color := foregroundIndex
-			if randomColor {
-				color = rand.Intn(maxIndex)
+			if *randomColor {
+				color = rand.Intn(sizeOfPalette3)
 			}
 			img.SetColorIndex(size+int(x*size+0.5), size+int(y*size+0.5), uint8(color))
 		}

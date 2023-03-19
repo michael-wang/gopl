@@ -11,25 +11,19 @@ import (
 )
 
 // Exercise 1.7
-var copy bool
+var copy = flag.Bool("copy", false, "Exercise 1.7 use io.Copy to copy response body to os.Stdout")
 
 // Exercise 1.8
-var prefix bool
+var prefix = flag.Bool("prefix", false, "Exercise 1.8 add prefix https:// if missing")
 
 // Exercise 1.9
-var status bool
+var status = flag.Bool("status", false, "Exercise 1.9 print the HTTP status code")
 
 func main() {
-	flag.BoolVar(&copy, "copy", false, "Exercise 1.7 use io.Copy to copy response body to os.Stdout")
-	flag.BoolVar(&prefix, "prefix", false, "Exercise 1.8 add prefix https:// if missing")
-	flag.BoolVar(&status, "status", false, "Exercise 1.9 print the HTTP status code")
 	flag.Parse()
 
-	for _, url := range os.Args[1:] {
-		if strings.HasPrefix(url, "--") {
-			continue
-		}
-		if prefix && !strings.HasPrefix(url, "http") {
+	for _, url := range flag.Args() {
+		if *prefix && !strings.HasPrefix(url, "http") {
 			url = "https://" + url
 		}
 
@@ -39,7 +33,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		if copy {
+		if *copy {
 			_, err := io.Copy(os.Stdout, resp.Body)
 			resp.Body.Close()
 			if err != nil {
@@ -57,7 +51,7 @@ func main() {
 		}
 
 		fmt.Println("fetch", url, "Done.")
-		if status {
+		if *status {
 			fmt.Println("HTTP status code:", resp.Status)
 		}
 	}
