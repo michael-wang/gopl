@@ -18,3 +18,31 @@ func PopCount(x uint64) int {
 		pc[byte(x>>(6*8))] +
 		pc[byte(x>>(7*8))])
 }
+
+func PopCountByLoop(x uint64) int {
+	var c byte
+	for i := 0; i < 8; i++ {
+		// notice >> and * has same precedence but >> will be associated first.
+		// (see p. 52 of the book).
+		// so (i*8) is required, or x>>i first then *8 which is NOT what we want.
+		c += pc[byte(x>>(i*8))]
+	}
+	return int(c)
+}
+
+func PopCountByShifting(x uint64) int {
+	var c byte
+	for i := 0; i < 64; i++ {
+		c += byte(x & 1)
+		x >>= 1
+	}
+	return int(c)
+}
+
+func PopCountByRightMostOne(x uint64) int {
+	c := 0
+	for ; x > 0; c++ {
+		x &= (x - 1)
+	}
+	return c
+}
