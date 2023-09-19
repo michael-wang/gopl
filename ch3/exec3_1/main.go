@@ -24,6 +24,7 @@ func main() {
 		for j := 0; j < cells; j++ {
 			ax, ay, ok := corner(i+1, j)
 			if !ok {
+				// Skip invalid point as the exercise asked.
 				continue
 			}
 			bx, by, ok := corner(i, j)
@@ -49,7 +50,7 @@ func corner(i, j int) (float64, float64, bool) {
 	x := xyrange * (float64(i)/cells - 0.5)
 	y := xyrange * (float64(j)/cells - 0.5)
 	z := f(x, y)
-	if math.IsInf(z, 0) {
+	if math.NaN() == z {
 		return 0, 0, false
 	}
 	sx := width/2 + (x-y)*cos30*xyscale
