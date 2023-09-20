@@ -118,13 +118,14 @@ func f(x, y float64) float64 {
 const minZ = -0.3
 const maxZ = 1.0
 
-var minZColor = color.RGB{0, 0, 1.0}.ToHSL() // blue
-var maxZColor = color.RGB{1.0, 0, 0}.ToHSL() // red
+var minZColor = color.RGB{R: 0, G: 0, B: 1.0}.ToHSL() // blue
+var maxZColor = color.RGB{R: 1.0, G: 0, B: 0}.ToHSL() // red
 // H in HSL color space
 var minH = minZColor.H
 var maxH = maxZColor.H
 
 func setColor(min, max *color.RGB) {
+	fmt.Printf("setColor min: %v, max: %v\n", min, max)
 	if min != nil {
 		minZColor = min.ToHSL()
 	}
@@ -133,6 +134,7 @@ func setColor(min, max *color.RGB) {
 	}
 	minH = minZColor.H
 	maxH = maxZColor.H
+	fmt.Printf("in HSL min: %v, max: %v\n", minZColor, maxZColor)
 }
 
 // z:		[minZ,		maxZ]
@@ -145,6 +147,6 @@ func mapColor(z float64) string {
 	} else {
 		h = (maxZ-z)/(maxZ-minZ)*(minH-maxH) + maxH
 	}
-	hsl := color.HSL{h, 1.0, 0.5}
+	hsl := color.HSL{H: h, S: 1.0, L: 0.5}
 	return hsl.ToHTML()
 }
