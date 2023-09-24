@@ -3,7 +3,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -12,6 +11,12 @@ import (
 	"math/big"
 	"math/cmplx"
 	"os"
+)
+
+const (
+	x0, y0        = -2, -2
+	x1, y1        = +2, +2
+	width, height = 1024, 1024
 )
 
 const (
@@ -29,36 +34,33 @@ var precs = map[string]int{
 }
 
 func main() {
-
 	var (
-		zoom   float64
-		tx, ty float64
-		prec   string
-		out    string
+		x, y float64
+		zoom float64
+		prec string
+		out  string
 	)
-	flag.Float64Var(&tx, "x", 0.0, "x translation")
-	flag.Float64Var(&ty, "y", 0.0, "y translation")
+	flag.Float64Var(&x, "x", 0.0, "x translation")
+	flag.Float64Var(&y, "y", 0.0, "y translation")
 	flag.Float64Var(&zoom, "z", 1, "zoom in level, e.g. 1, 2, 4...")
 	flag.StringVar(&prec, "p", "c64", "precision: c64: complex64, c128: complex128, bigfloat: big.Float, bigrat: big.Rat")
 	flag.StringVar(&out, "o", "./out", "output image path")
 	flag.Parse()
-	fmt.Printf("tx: %v, ty: %v, zoom: %v, precision: %v, out: %v\n", tx, ty, zoom, prec, out)
 
 	file, err := os.Create(out)
 	if err != nil {
 		log.Fatalf("Failed to open file: %v\n", err)
 	}
 
-	draw(file, zoom, tx, ty, precs[prec])
+	draw(file, x, y, zoom, precs[prec])
 }
 
-func draw(out io.Writer, zoom, tx, ty float64, prec int) {
+func draw(out io.Writer, x, y, zoom float64, prec int) {
 	var (
-		xmin          = -2/zoom + tx
-		ymin          = -2/zoom + ty
-		xmax          = +2/zoom + tx
-		ymax          = +2/zoom + ty
-		width, height = 1024, 1024
+		xmin = x0/zoom + x
+		ymin = y0/zoom + y
+		xmax = x1/zoom + x
+		ymax = y1/zoom + y
 	)
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
