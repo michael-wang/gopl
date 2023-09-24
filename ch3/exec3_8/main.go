@@ -3,41 +3,59 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"log"
 	"math/big"
 	"math/cmplx"
 	"os"
 )
 
-func main() {
-	const (
-		precC64 = iota
-		precC128
-		precBigFloat
-		precBigRat
-	)
+const (
+	precC64 = iota
+	precC128
+	precBigFloat
+	precBigRat
+)
 
-	var zoom, tx, ty float64
-	var prec string
+var precs = map[string]int{
+	"c64":      precC64,
+	"c128":     precC128,
+	"bigfloat": precBigFloat,
+	"bigrat":   precBigRat,
+}
+
+func main() {
+
+	var (
+		zoom   float64
+		tx, ty float64
+		prec   string
+		out    string
+	)
 	flag.Float64Var(&tx, "x", 0.0, "x translation")
 	flag.Float64Var(&ty, "y", 0.0, "y translation")
 	flag.Float64Var(&zoom, "z", 1, "zoom in level, e.g. 1, 2, 4...")
 	flag.StringVar(&prec, "p", "c64", "precision: c64: complex64, c128: complex128, bigfloat: big.Float, bigrat: big.Rat")
+	flag.StringVar(&out, "o", "./out", "output image path")
 	flag.Parse()
+	fmt.Printf("tx: %v, ty: %v, zoom: %v, precision: %v, out: %v\n", tx, ty, zoom, prec, out)
 
-	precs := map[string]int{
-		"c64":      precC64,
-		"c128":     precC128,
-		"bigfloat": precBigFloat,
-		"bigrat":   precBigRat,
+	file, err := os.Create(out)
+	if err != nil {
+		log.Fatalf("Failed to open file: %v\n", err)
 	}
 
+	draw(file, zoom, tx, ty, precs[prec])
+}
+
+func draw(out io.Writer, zoom, tx, ty float64, prec int) {
 	var (
-		xmin          = -2.0/zoom + tx
-		ymin          = -2.0/zoom + ty
+		xmin          = -2/zoom + tx
+		ymin          = -2/zoom + ty
 		xmax          = +2/zoom + tx
 		ymax          = +2/zoom + ty
 		width, height = 1024, 1024
@@ -49,7 +67,7 @@ func main() {
 		for px := 0; px < width; px++ {
 			x := float64(px)/float64(width)*(xmax-xmin) + xmin
 			z := complex(x, y)
-			switch precs[prec] {
+			switch prec {
 			case precC64:
 				img.Set(px, py, mandelbrot64(z))
 			case precC128:
@@ -63,7 +81,7 @@ func main() {
 			}
 		}
 	}
-	png.Encode(os.Stdout, img)
+	png.Encode(out, img)
 }
 
 func mandelbrot64(z complex128) color.Color {
